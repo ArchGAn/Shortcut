@@ -2,21 +2,54 @@
 
 Shorthand-style commands for Ashita v4. Type less, play more.
 
+## ⚠️ Not the Shorthand You Know
+
+This is **not** a full Shorthand replacement. Due to Lua addon limitations, partial name targeting (`//cure sam`) is unreliable.
+
+**What works reliably:** Target tokens
+**What's hit-or-miss:** Partial name search
+
 ## Quick Start
 
 ```
-//[action] [partial name]
+//[action] <target>
 ```
 
 | You type | What happens |
 |----------|--------------|
-| `//cure` | Cures your current target |
-| `//cure sam` | Finds "Samurai" nearby, cures them |
-| `//dia gob` | Finds nearest "Goblin", casts Dia |
-| `//provoke gob` | Finds nearest "Goblin", uses Provoke |
-| `//fight gob` | Finds nearest "Goblin", pet attacks |
+| `//cure` | Cures `<t>` (current target) |
+| `//cure <me>` | Cures yourself |
+| `//cure <bt>` | Cures battle target (whoever has hate) |
+| `//dia <bt>` | Dia on battle target |
+| `//fight` | Pet attacks `<t>` |
+| `//ra` | Ranged attack `<t>` |
 
-**The partial name always wins.** If you have a Goblin targeted but type `//cure sam`, it will cure Samurai, not the Goblin.
+## Target Tokens (Reliable ✅)
+
+| Token | Target |
+|-------|--------|
+| `<t>` | Current target |
+| `<bt>` | Battle target (mob your party is fighting) |
+| `<me>` | Yourself |
+| `<st>` | Opens subtarget cursor |
+| `<pet>` | Your pet |
+| `<p0>`-`<p5>` | Party members |
+
+These always work because they're native FFXI tokens.
+
+## Partial Names (Unreliable ⚠️)
+
+`//cure sam` attempts to:
+1. `/target "Samurai"`
+2. Wait 0.5s
+3. `/ma "Cure" <t>`
+
+This can fail if:
+- `/target` doesn't find the name
+- Target doesn't register in time
+- Multiple entities match
+
+**Use at your own risk.** For reliability, stick to tokens.
 
 ## Installation
 
@@ -24,45 +57,37 @@ Shorthand-style commands for Ashita v4. Type less, play more.
 2. Load: `/addon load shortcut`
 3. Help: `/sc`
 
-## Safety
-
-**Undetectable.** The addon only:
-- Reads entity names from memory (client-side, invisible to server)
-- Sends normal commands: `/target`, `/ma`, `/ja`, `/pet`, `/ws`
-
-The server sees identical traffic to manual typing. No packets modified, no memory written, no automation.
-
-```lua
--- All commands go through Ashita's official API:
-AshitaCore:GetChatManager():QueueCommand(1, '/ma "Cure" "Samurai"');
-```
-
 ## Command Types
 
-Automatically detected:
+Auto-detected:
 
 | Type | Example | Output |
 |------|---------|--------|
-| Spell | `//cure4 sam` | `/ma "Cure IV" "Samurai"` |
-| Ability | `//provoke gob` | `/ja "Provoke" <t>` |
-| Pet | `//fight gob` | `/pet "Fight" <t>` |
-| Weapon Skill | `//raging axe gob` | `/ws "Raging Axe" <t>` |
-| Ranged | `//ra gob` | `/ra <t>` |
-| Item | `//potion` | `/item "Potion" <t>` |
+| Spell | `//cure4 <me>` | `/ma "Cure IV" <me>` |
+| Ability | `//provoke` | `/ja "Provoke" <t>` |
+| Pet | `//fight` | `/pet "Fight" <t>` |
+| Weapon Skill | `//raging axe` | `/ws "Raging Axe" <t>` |
+| Ranged | `//ra` | `/ra <t>` |
+| Item | `//potion <me>` | `/item "Potion" <me>` |
 
-## Smart Targeting
+## Safety
 
-- `//cure` → searches **players/party**
-- `//dia` → searches **mobs**
-- Healing spells auto-target players
-- Offensive spells auto-target mobs
+**Undetectable.** Only sends vanilla commands:
+- `/target "Name"`
+- `/ma "Spell" <t>`
+- `/ja "Ability" <t>`
+- etc.
 
-## Standard Targets
+No packets modified. No memory written. Just faster typing.
 
-These pass through directly:
-- `//cure <me>` → cures yourself
-- `//cure <t>` → cures current target
-- `//cure <st>` → opens subtarget
+## Why Not Full Shorthand?
+
+Shorthand was a DLL plugin with deeper access. Lua addons can only:
+- Read memory (not write)
+- Queue commands (not inject packets)
+- Use timers (not instant targeting)
+
+The 0.5s delay between `/target` and action is the limitation.
 
 ## License
 

@@ -10,20 +10,22 @@ local chat = require('chat');
 Shortcut - Shorthand-style commands for Ashita v4
 
 USAGE:
-  //[action]             Uses current target
-  //[action] [name]      Finds + targets by partial name
+  //[action]             Uses current target (<t>)
+  //[action] <t>         Current target
+  //[action] <bt>        Battle target (mob party is fighting)
+  //[action] <me>        Yourself
+  //[action] <st>        Subtarget cursor
 
 EXAMPLES:
   //cure                 Cure current target
-  //cure sam             Find "Samurai", cure them
-  //dia gob              Find "Goblin", cast Dia  
-  //provoke gob          Find "Goblin", Provoke
-  //fight gob            Find "Goblin", pet Fight
-  //ra gob               Find "Goblin", ranged attack
   //cure <me>            Cure yourself
+  //cure <bt>            Cure whoever has hate
+  //dia <bt>             Dia the mob
+  //fight                Pet fight current target
+  //ra                   Ranged attack current target
 
-Partial name always overrides current target.
-Heals auto-search players. Attacks auto-search mobs.
+NOTE: Partial name targeting (//cure sam) depends on /target working.
+      For reliability, use target tokens: <t>, <bt>, <me>, <st>
 ]]
 
 local SPAWN_MOB = 0x10;
@@ -502,7 +504,7 @@ ashita.events.register('command', 'shortcut_cmd', function(e)
         return;
     end
     
-    -- Check for <me>, <t>, <st>, etc
+    -- Check for <me>, <t>, <st>, <bt>, <pet>, etc - pass through directly
     if (string.sub(target_str, 1, 1) == '<') then
         final_cmd = string.gsub(final_cmd, '<t>', target_str);
         AshitaCore:GetChatManager():QueueCommand(1, final_cmd);
@@ -517,24 +519,12 @@ ashita.events.register('command', 'shortcut_cmd', function(e)
     end
     
     if (found) then
-        -- Some commands (pet, ws) only work with <t>, not named targets
-        -- So we need to target first, then use <t>
-        local needs_target_first = (cmd_type == 'pet' or cmd_type == 'ws' or cmd_type == 'direct');
-        
-        if (needs_target_first) then
-            -- Target entity, wait, then execute with <t>
-            target_entity_by_name(found.name);
-            local delayed_cmd = final_cmd;
-            ashita.tasks.once(0.5, function()
-                AshitaCore:GetChatManager():QueueCommand(1, delayed_cmd);
-            end);
-        else
-            -- Spells/JA/items can use named targets directly
-            local name_target = '"' .. found.name .. '"';
-            local direct_cmd = string.gsub(final_cmd, '<t>', name_target);
-            AshitaCore:GetChatManager():QueueCommand(1, direct_cmd);
-        end
-        
+        -- FFXI commands don't accept named targets - must use /target first, then <t>
+        target_entity_by_name(found.name);
+        local delayed_cmd = final_cmd;
+        ashita.tasks.once(0.5, function()
+            AshitaCore:GetChatManager():QueueCommand(1, delayed_cmd);
+        end);
         -- Success - no output needed
     else
         print(chat.header('SC'):append(chat.warning(string.format('No match for "%s"', target_str))));
@@ -546,17 +536,18 @@ ashita.events.register('command', 'shortcut_help', function(e)
     local args = e.command:args();
     if (#args < 1 or (args[1] ~= '/sc' and args[1] ~= '/shortcut')) then return; end
     e.blocked = true;
-    print(chat.header('Shortcut'):append(chat.message('v2.5')));
+    print(chat.header('Shortcut'):append(chat.message('v2.7')));
     print('  //[action]           Uses current target');
-    print('  //[action] [name]    Finds + targets by partial name');
+    print('  //[action] <t>       Current target');
+    print('  //[action] <bt>      Battle target (mob party is fighting)');
+    print('  //[action] <me>      Yourself');
+    print('  //[action] <st>      Subtarget cursor');
     print('');
-    print('  //cure               Cure current target');
-    print('  //cure sam           Find "Samurai", cure them');
-    print('  //dia gob            Find "Goblin", cast Dia');
-    print('  //provoke gob        Find "Goblin", Provoke');
-    print('  //fight gob          Find "Goblin", pet Fight');
-    print('  //ra gob             Find "Goblin", ranged attack');
+    print('  //cure               Cure <t>');
     print('  //cure <me>          Cure yourself');
+    print('  //cure <bt>          Cure whoever has hate');
+    print('  //dia <bt>           Dia the mob');
+    print('  //fight <t>          Pet fight current target');
 end);
 
-print(chat.header('Shortcut'):append(chat.message('v2.5 Loaded - //[action] [target]')));
+print(chat.header('Shortcut'):append(chat.message('v2.7 Loaded - //[action] [target]')));
