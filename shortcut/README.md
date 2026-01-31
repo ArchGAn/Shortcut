@@ -19,8 +19,9 @@ This is **not** a full Shorthand replacement. Due to Lua addon limitations, part
 |----------|--------------|
 | `//cure` | Cures `<t>` (current target) |
 | `//cure <me>` | Cures yourself |
+| `//cure <stpc>` | Opens player picker, then cures |
+| `//dia <stnpc>` | Opens mob picker, then casts Dia |
 | `//cure <bt>` | Cures battle target (whoever has hate) |
-| `//dia <bt>` | Dia on battle target |
 | `//fight` | Pet attacks `<t>` |
 | `//ra` | Ranged attack `<t>` |
 
@@ -31,11 +32,18 @@ This is **not** a full Shorthand replacement. Due to Lua addon limitations, part
 | `<t>` | Current target |
 | `<bt>` | Battle target (mob your party is fighting) |
 | `<me>` | Yourself |
-| `<st>` | Opens subtarget cursor |
+| `<st>` | Subtarget cursor (any) |
+| `<stpc>` | Subtarget cursor (players only) |
+| `<stnpc>` | Subtarget cursor (NPCs/mobs only) |
 | `<pet>` | Your pet |
 | `<p0>`-`<p5>` | Party members |
 
 These always work because they're native FFXI tokens.
+
+**Best combos:**
+- `//cure <stpc>` - Cure, then pick any player
+- `//dia <stnpc>` - Dia, then pick any mob
+- `//cure <bt>` - Cure whoever has hate
 
 ## Partial Names (Unreliable ⚠️)
 

@@ -14,18 +14,20 @@ USAGE:
   //[action] <t>         Current target
   //[action] <bt>        Battle target (mob party is fighting)
   //[action] <me>        Yourself
-  //[action] <st>        Subtarget cursor
+  //[action] <st>        Subtarget cursor (any)
+  //[action] <stpc>      Subtarget cursor (players only)
+  //[action] <stnpc>     Subtarget cursor (NPCs/mobs only)
 
 EXAMPLES:
   //cure                 Cure current target
   //cure <me>            Cure yourself
+  //cure <stpc>          Cure - pick a player
+  //dia <stnpc>          Dia - pick a mob
   //cure <bt>            Cure whoever has hate
-  //dia <bt>             Dia the mob
   //fight                Pet fight current target
-  //ra                   Ranged attack current target
 
 NOTE: Partial name targeting (//cure sam) depends on /target working.
-      For reliability, use target tokens: <t>, <bt>, <me>, <st>
+      For reliability, use target tokens: <t>, <bt>, <stpc>, <stnpc>, etc.
 ]]
 
 local SPAWN_MOB = 0x10;
@@ -504,7 +506,7 @@ ashita.events.register('command', 'shortcut_cmd', function(e)
         return;
     end
     
-    -- Check for <me>, <t>, <st>, <bt>, <pet>, etc - pass through directly
+    -- Check for <me>, <t>, <st>, <bt>, <stpc>, <stnpc>, <pet>, etc - pass through directly
     if (string.sub(target_str, 1, 1) == '<') then
         final_cmd = string.gsub(final_cmd, '<t>', target_str);
         AshitaCore:GetChatManager():QueueCommand(1, final_cmd);
@@ -536,18 +538,19 @@ ashita.events.register('command', 'shortcut_help', function(e)
     local args = e.command:args();
     if (#args < 1 or (args[1] ~= '/sc' and args[1] ~= '/shortcut')) then return; end
     e.blocked = true;
-    print(chat.header('Shortcut'):append(chat.message('v2.7')));
+    print(chat.header('Shortcut'):append(chat.message('v2.8')));
     print('  //[action]           Uses current target');
     print('  //[action] <t>       Current target');
-    print('  //[action] <bt>      Battle target (mob party is fighting)');
+    print('  //[action] <bt>      Battle target (mob fighting)');
     print('  //[action] <me>      Yourself');
     print('  //[action] <st>      Subtarget cursor');
+    print('  //[action] <stpc>    Subtarget (players only)');
+    print('  //[action] <stnpc>   Subtarget (NPCs/mobs only)');
     print('');
-    print('  //cure               Cure <t>');
-    print('  //cure <me>          Cure yourself');
+    print('  //cure <stpc>        Cure - pick a player');
+    print('  //dia <stnpc>        Dia - pick a mob');
     print('  //cure <bt>          Cure whoever has hate');
-    print('  //dia <bt>           Dia the mob');
-    print('  //fight <t>          Pet fight current target');
+    print('  //fight              Pet fight <t>');
 end);
 
-print(chat.header('Shortcut'):append(chat.message('v2.7 Loaded - //[action] [target]')));
+print(chat.header('Shortcut'):append(chat.message('v2.8 Loaded - //[action] [target]')));
